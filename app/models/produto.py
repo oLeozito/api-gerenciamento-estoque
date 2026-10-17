@@ -1,8 +1,12 @@
+from typing import TYPE_CHECKING
 from .mixins import TimestampMixin
 from .base import Base
 from uuid import UUID, uuid4
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, text
+from sqlalchemy import ForeignKey, String, text
+
+if TYPE_CHECKING:
+    from .categoria import Categoria
 
 class Produto(Base,TimestampMixin):
     __tablename__ = "produtos"
@@ -14,7 +18,9 @@ class Produto(Base,TimestampMixin):
     preco_custo: Mapped[float] = mapped_column(nullable=False)
     preco_venda: Mapped[float] = mapped_column(nullable=False)
     qtd_estoque: Mapped[int] = mapped_column(nullable=False) 
-    categoria: Mapped[str] = mapped_column(String(150), nullable=False)    
+    categoria_id: Mapped[UUID] = mapped_column(ForeignKey("categorias.id", ondelete="RESTRICT"), nullable=False, index=True)
+
+    categoria: Mapped["Categoria"] = relationship(back_populates="produtos")
     # peso
 
     # TODO: Colocar os relationships
