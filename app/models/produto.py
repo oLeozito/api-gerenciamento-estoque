@@ -7,6 +7,8 @@ from sqlalchemy import ForeignKey, String, text
 
 if TYPE_CHECKING:
     from .categoria import Categoria
+    from .fornecedor import Fornecedor
+    from .movimentacao import Movimentacao
 
 class Produto(Base,TimestampMixin):
     __tablename__ = "produtos"
@@ -19,8 +21,9 @@ class Produto(Base,TimestampMixin):
     preco_venda: Mapped[float] = mapped_column(nullable=False)
     qtd_estoque: Mapped[int] = mapped_column(nullable=False) 
     categoria_id: Mapped[UUID] = mapped_column(ForeignKey("categorias.id", ondelete="RESTRICT"), nullable=False, index=True)
+    fornecedor_id: Mapped[UUID] = mapped_column(ForeignKey("fornecedores.id", ondelete="RESTRICT"), nullable=False, index=True)
 
     categoria: Mapped["Categoria"] = relationship(back_populates="produtos")
+    fornecedor: Mapped["Fornecedor"] = relationship(back_populates="produtos")
+    movimentacoes: Mapped[list["Movimentacao"]] = relationship(back_populates="produto")
     # peso
-
-    # TODO: Colocar os relationships
