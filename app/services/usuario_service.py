@@ -13,7 +13,7 @@ class UsuarioService:
         if autor_cargo == "estoquista":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="Estoquistas não têm permissão para cadastrar usuários."
+                detail="Você não tem permissão para cadastrar usuários."
             )
             
         if autor_cargo == "gerente" and usuario_in.cargo in ["admin", "gerente"]:
