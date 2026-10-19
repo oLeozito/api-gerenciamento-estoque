@@ -1,16 +1,21 @@
-import os
-from dotenv import load_dotenv
-
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-load_dotenv()
+from app.core.config import settings
 
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-if not DATABASE_URL:
-    raise ValueError("DATABASE_URL não foi encontrado no .env")
-
-engine = create_engine(DATABASE_URL)
+# O Pydantic já garantiu que a database_url existe e está correta
+engine = create_engine(settings.database_url)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+
+def get_db():
+    """
+    Injeta a sessão do banco nas rotas do FastAPI.
+    O 'yield' entrega a sessão para a rota usar, e o 'finally' garante
+    que a conexão com o PostgreSQL seja fechada quando a rota terminar.
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
