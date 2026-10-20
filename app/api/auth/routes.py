@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, status, Form
+from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
 from app.schemas.usuario import UsuarioLogin, UsuarioCreate, UsuarioResponse
@@ -6,7 +6,7 @@ from app.schemas.token import Token
 from app.services.auth_service import AuthService
 from app.services.usuario_service import UsuarioService
 from app.repositories.usuario_repository import UsuarioRepository
-from app.api.deps import obter_usuario_logado
+from app.api.deps import obter_usuario_logado, exigir_cargos
 from app.core.database import get_db
 from app.models.usuario import Usuario
 
@@ -29,7 +29,7 @@ def login(
 @router.post("/usuarios", response_model=UsuarioResponse, status_code=status.HTTP_201_CREATED)
 def criar_usuario(
     usuario_in: UsuarioCreate,
-    usuario_atual: Usuario = Depends(obter_usuario_logado),
+    usuario_atual: Usuario = Depends(exigir_cargos(["admin", "gerente"])),
     db: Session = Depends(get_db)
 ):
     repository = UsuarioRepository(db)
@@ -37,6 +37,6 @@ def criar_usuario(
     
     novo_usuario = service.criar_usuario(
         usuario_in=usuario_in,
-        autor_cargo=usuario_atual.cargo
+        autor_cargo=usuario_atual.cargo # Passamos para o service diferenciar Admin de Gerente
     )
     return novo_usuario
