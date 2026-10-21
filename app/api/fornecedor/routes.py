@@ -43,7 +43,7 @@ def criar_fornecedor(
     service = FornecedorService(repository)
     return service.criar_fornecedor(fornecedor_in=fornecedor_in)
 
-@router.put("/{id}", response_model=FornecedorDetailResponse, status_code=status.HTTP_200_OK)
+@router.patch("/{id}", response_model=FornecedorDetailResponse, status_code=status.HTTP_200_OK)
 def atualizar_fornecedor(
     id: UUID,
     fornecedor_in: FornecedorUpdate,
