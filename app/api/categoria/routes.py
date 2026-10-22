@@ -33,7 +33,7 @@ def criar_categoria(
     # Não precisamos mais passar autor_cargo
     return service.criar_categoria(categoria_in=categoria_in)
 
-@router.put("/{id}", response_model=CategoriaResponse, status_code=status.HTTP_200_OK)
+@router.patch("/{id}", response_model=CategoriaResponse, status_code=status.HTTP_200_OK)
 def atualizar_categoria(
     id: UUID,
     categoria_in: CategoriaUpdate,

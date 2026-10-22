@@ -2,7 +2,7 @@ from uuid import UUID
 from pydantic import BaseModel, ConfigDict
 
 class CategoriaBase(BaseModel):
-    nome: str
+    nome: str | None = None
 
 class CategoriaCreate(CategoriaBase):
     pass
