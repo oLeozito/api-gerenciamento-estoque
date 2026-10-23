@@ -20,7 +20,7 @@ class MovimentacaoService:
         fornecedor_id: UUID | None = None
     ) -> list[Movimentacao]:
         return self.repository.pesquisar_avancado(data_inicio, data_fim, tipo, fornecedor_id)
-        
+
     def buscar_por_produto(self, produto_id: UUID) -> list[Movimentacao]:
         return self.repository.get_by_produto_id(produto_id)
 
@@ -39,6 +39,7 @@ class MovimentacaoService:
                 )
             # Deduz do estoque
             produto.qtd_estoque -= mov_in.quantidade
+            mov_in.valor_unitario = produto.preco_venda
         
         elif mov_in.tipo == TipoMovimentacao.ENTRADA:
             # Adiciona ao estoque
