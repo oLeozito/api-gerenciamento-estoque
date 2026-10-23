@@ -37,10 +37,14 @@ class MovimentacaoService:
             # Adiciona ao estoque
             produto.qtd_estoque += mov_in.quantidade
 
+            if mov_in.valor_unitario is not None:
+                produto.preco_custo = mov_in.valor_unitario
+
         # 3. Cria a entidade de movimentação
         nova_movimentacao = Movimentacao(
             tipo=mov_in.tipo.value,
             quantidade=mov_in.quantidade,
+            valor_unitario=mov_in.valor_unitario,
             produto_id=mov_in.produto_id
         )
         
