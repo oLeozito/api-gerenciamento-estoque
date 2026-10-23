@@ -1,6 +1,7 @@
 from uuid import UUID
 from sqlalchemy.orm import Session
 from sqlalchemy import select
+from sqlalchemy import func
 
 from app.models.produto import Produto
 
@@ -38,3 +39,11 @@ class ProdutoRepository:
     def delete(self, produto: Produto) -> None:
         self.session.delete(produto)
         self.session.commit()
+
+    def get_estoque_critico_count(self, limite: int = 10) -> int:
+        query = select(func.count(Produto.id)).where(Produto.qtd_estoque <= limite)
+        return self.session.execute(query).scalar() or 0
+
+    def get_all_simplificado(self):
+        query = select(Produto.id, Produto.nome, Produto.qtd_estoque).order_by(Produto.nome.asc())
+        return self.session.execute(query).all()
