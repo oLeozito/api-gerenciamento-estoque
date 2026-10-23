@@ -13,6 +13,9 @@ class ProdutoService:
     def listar_todos(self) -> list[Produto]:
         return self.repository.get_all()
 
+    def listar_estoque_baixo(self, limite: int) -> list[Produto]:
+        return self.repository.get_estoque_baixo(limite)
+
     def buscar_por_id(self, id: UUID) -> Produto:
         produto = self.repository.get_by_id(id)
         if not produto:

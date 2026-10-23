@@ -20,6 +20,16 @@ def listar_produtos(
     service = ProdutoService(repository)
     return service.listar_todos()
 
+@router.get("/alerta-estoque", response_model=list[ProdutoListResponse], status_code=status.HTTP_200_OK)
+def listar_produtos_estoque_baixo(
+    limite: int = 10,
+    db: Session = Depends(get_db),
+    usuario_atual: Usuario = Depends(obter_usuario_logado)
+):
+    repository = ProdutoRepository(db)
+    service = ProdutoService(repository)
+    return service.listar_estoque_baixo(limite)
+
 @router.get("/{id}", response_model=ProdutoDetailResponse, status_code=status.HTTP_200_OK)
 def buscar_produto(
     id: UUID,

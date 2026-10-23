@@ -20,6 +20,10 @@ class ProdutoRepository:
         query = select(Produto).where(Produto.codigo == codigo)
         return self.session.execute(query).scalar_one_or_none()
 
+    def get_estoque_baixo(self, limite: int) -> list[Produto]:
+        query = select(Produto).where(Produto.qtd_estoque <= limite).order_by(Produto.qtd_estoque.asc())
+        return list(self.session.scalars(query).all())
+
     def create(self, produto: Produto) -> Produto:
         self.session.add(produto)
         self.session.commit()
