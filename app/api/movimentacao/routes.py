@@ -9,18 +9,23 @@ from app.repositories.produto_repository import ProdutoRepository
 from app.api.deps import obter_usuario_logado
 from app.core.database import get_db
 from app.models.usuario import Usuario
+from typing import Optional
+from datetime import datetime
 
 router = APIRouter(prefix="/movimentacoes", tags=["Movimentações"])
 
 @router.get("", response_model=list[MovimentacaoResponse], status_code=status.HTTP_200_OK)
 def listar_movimentacoes(
+    data_inicio: Optional[datetime] = None,
+    data_fim: Optional[datetime] = None,
+    tipo: Optional[str] = None,
+    fornecedor_id: Optional[UUID] = None,
     db: Session = Depends(get_db),
     usuario_atual: Usuario = Depends(obter_usuario_logado)
 ):
     repository = MovimentacaoRepository(db)
-    # Passamos None para o produto_repo pois não precisamos dele no GET genérico
-    service = MovimentacaoService(repository, None) 
-    return service.listar_todas()
+    service = MovimentacaoService(repository, None)
+    return service.listar_todas(data_inicio, data_fim, tipo, fornecedor_id)
 
 @router.get("/produto/{produto_id}", response_model=list[MovimentacaoResponse], status_code=status.HTTP_200_OK)
 def listar_movimentacoes_por_produto(

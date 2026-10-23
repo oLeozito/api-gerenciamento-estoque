@@ -1,6 +1,7 @@
 from uuid import UUID
 from fastapi import HTTPException, status
 
+from datetime import datetime
 from app.models.movimentacao import Movimentacao
 from app.schemas.movimentacao import MovimentacaoCreate, TipoMovimentacao
 from app.repositories.movimentacao_repository import MovimentacaoRepository
@@ -11,9 +12,15 @@ class MovimentacaoService:
         self.repository = repository
         self.produto_repo = produto_repo
 
-    def listar_todas(self) -> list[Movimentacao]:
-        return self.repository.get_all()
-
+    def listar_todas(
+        self, 
+        data_inicio: datetime | None = None, 
+        data_fim: datetime | None = None, 
+        tipo: str | None = None, 
+        fornecedor_id: UUID | None = None
+    ) -> list[Movimentacao]:
+        return self.repository.pesquisar_avancado(data_inicio, data_fim, tipo, fornecedor_id)
+        
     def buscar_por_produto(self, produto_id: UUID) -> list[Movimentacao]:
         return self.repository.get_by_produto_id(produto_id)
 
