@@ -12,7 +12,7 @@ router = APIRouter(prefix="/dashboard", tags=["Dashboard"])
 @router.get("", response_model=DashboardResponse, status_code=status.HTTP_200_OK)
 def obter_dashboard(
     db: Session = Depends(get_db),
-    usuario_atual: Usuario = Depends(exigir_cargos(["ADMIN", "GERENTE"]))
+    usuario_atual: Usuario = Depends(exigir_cargos(["admin", "gerente"]))
 ):
     prod_repo = ProdutoRepository(db)
     mov_repo = MovimentacaoRepository(db)
