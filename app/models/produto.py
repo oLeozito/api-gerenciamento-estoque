@@ -19,7 +19,7 @@ class Produto(Base,TimestampMixin):
     descricao: Mapped[str] = mapped_column(String(600), nullable=True)
     preco_custo: Mapped[float] = mapped_column(nullable=False)
     preco_venda: Mapped[float] = mapped_column(nullable=False)
-    qtd_estoque: Mapped[int] = mapped_column(nullable=False) 
+    qtd_estoque: Mapped[int] = mapped_column(nullable=False, default=0, server_default=text("0"))
     categoria_id: Mapped[UUID] = mapped_column(ForeignKey("categorias.id", ondelete="RESTRICT"), nullable=False, index=True)
     fornecedor_id: Mapped[UUID] = mapped_column(ForeignKey("fornecedores.id", ondelete="RESTRICT"), nullable=False, index=True)
 

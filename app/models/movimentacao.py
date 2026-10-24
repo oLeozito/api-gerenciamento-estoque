@@ -19,6 +19,7 @@ class Movimentacao(Base, TimestampMixin):
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4, server_default=text("gen_random_uuid()"))
     tipo: Mapped[str] = mapped_column(String(20), nullable=False)
     quantidade: Mapped[int] = mapped_column(nullable=False)
+    valor_unitario: Mapped[float] = mapped_column(nullable=True)
     data: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     # RESTRICT preserva o historico: um produto com movimentacoes nao pode ser apagado fisicamente.
     produto_id: Mapped[UUID] = mapped_column(ForeignKey("produtos.id", ondelete="RESTRICT"), nullable=False, index=True)

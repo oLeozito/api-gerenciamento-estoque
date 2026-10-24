@@ -9,13 +9,9 @@ class UsuarioService:
         self.repository = repository
 
     def criar_usuario(self, usuario_in: UsuarioCreate, autor_cargo: str) -> Usuario:
-        # Regra de Negócio RBAC
-        if autor_cargo == "estoquista":
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="Estoquistas não têm permissão para cadastrar usuários."
-            )
-            
+        # Regra de Negócio (Baseada no Payload):
+        # A rota já garantiu que autor_cargo é 'admin' ou 'gerente'.
+        # Se for gerente, impedimos a criação de cargos altos.
         if autor_cargo == "gerente" and usuario_in.cargo in ["admin", "gerente"]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
