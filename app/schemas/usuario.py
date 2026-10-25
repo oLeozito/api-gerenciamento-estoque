@@ -37,3 +37,7 @@ class UsuarioResponse(BaseModel):
     created_at: datetime
     
     model_config = ConfigDict(from_attributes=True)
+
+class UsuarioUpdate(BaseModel):
+    nome: str
+    cargo: str

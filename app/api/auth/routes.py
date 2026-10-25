@@ -1,6 +1,8 @@
+from app.schemas.usuario import UsuarioUpdate
 from typing import List
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
+from uuid import UUID
 
 from app.schemas.usuario import UsuarioLogin, UsuarioCreate, UsuarioResponse
 from app.schemas.token import Token
@@ -51,3 +53,19 @@ def listar_usuarios(
     service = UsuarioService(repository)
     
     return service.listar_usuarios()
+
+@router.put("/usuarios/{usuario_id}", response_model=UsuarioResponse)
+def atualizar_usuario(
+    usuario_id: UUID,
+    usuario_in: UsuarioUpdate,
+    usuario_atual: Usuario = Depends(exigir_cargos(["admin", "gerente"])),
+    db: Session = Depends(get_db)
+):
+    repository = UsuarioRepository(db)
+    service = UsuarioService(repository)
+    
+    return service.atualizar_usuario(
+        usuario_id=usuario_id,
+        dados=usuario_in.model_dump(),
+        autor_cargo=usuario_atual.cargo
+    )
