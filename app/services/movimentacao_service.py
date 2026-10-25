@@ -48,7 +48,7 @@ class MovimentacaoService:
             tipo=mov_in.tipo.value,
             quantidade=mov_in.quantidade,
             valor_unitario=mov_in.valor_unitario,
-            produto_id=mov_in.produto_id
+            produto_id=mov_in.produto_id,
             usuario_id=usuario_id
         )
         
