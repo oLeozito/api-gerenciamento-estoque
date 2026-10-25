@@ -23,6 +23,7 @@ app/
 ├── models/          # Modelos do SQLAlchemy (Tabelas do Banco)
 ├── repositories/    # Lógica de acesso a dados (Queries isoladas)
 ├── schemas/         # Modelos Pydantic (Validação de I/O)
+├── scripts/         # Scripts operacionais e utilitários
 ├── services/        # Regras de negócio
 ├── utils/           # Funções auxiliares genéricas
 └── main.py          # Ponto de entrada do Uvicorn
