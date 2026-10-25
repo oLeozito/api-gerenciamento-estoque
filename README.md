@@ -123,24 +123,34 @@ O sistema implementa tres niveis de perfil com granularidade de operacoes:
 - **`gerente`:** Pode consultar dados, cadastrar e alterar produtos, categorias e fornecedores, alem de visualizar o dashboard. Pode cadastrar novos usuarios estritamente com perfil `estoquista`. Nao possui autorizacao para exclusoes (`DELETE`).
 - **`estoquista`:** Foco operacional. Pode consultar produtos, categorias e fornecedores para suporte ao inventario, e possui permissao para lancar movimentacoes de entrada e saida. Nao pode cadastrar produtos, categorias ou fornecedores nem acessar o painel de gestao de usuarios/dashboard.
 
-### 3. Imutabilidade do Historico de Auditoria
+### 3. Politica de Senhas Fortes e Validacao de Seguranca
+Para proteger as contas contra acessos nao autorizados e credenciais frageis, a criacao de usuarios (`POST /auth/usuarios`) valida estritamente os seguintes requisitos de complexidade e tamanho de senha via schema Pydantic:
+- **Tamanho minimo:** Minimo de 8 caracteres.
+- **Letra maiuscula:** Ao menos uma letra maiuscula (`[A-Z]`).
+- **Letra minuscula:** Ao menos uma letra minuscula (`[a-z]`).
+- **Digito numerico:** Ao menos um numero (`\d`).
+- **Caractere especial:** Ao menos um caractere especial ou simbolo (`[\W_]`).
+
+Senhas que nao cumprirem todos os criterios sao rejeitadas com erro HTTP `422 Unprocessable Entity`, indicando a violacao especifica. Apos a aprovacao na validacao, o hash criptografico com salt e gerado antes da gravacao no banco de dados.
+
+### 4. Imutabilidade do Historico de Auditoria
 - As movimentacoes de estoque sao **imutaveis**. Uma vez registradas, nao podem ser alteradas (`PUT`/`PATCH`) nem excluidas (`DELETE`) pela API.
 - A exclusao fisica de produtos com movimentacoes associadas e bloqueada pelo banco de dados atraves da restricao de chave estrangeira com `ON DELETE RESTRICT`, garantindo a integridade do historico contabil e de auditoria.
 
-### 4. Transacoes Atomicas e Consistencia de Saldo
+### 5. Transacoes Atomicas e Consistencia de Saldo
 - Ao registrar uma movimentacao de estoque:
   - Para movimentacoes de **SAIDA**: valida-se previamente se a quantidade solicitada nao excede o saldo atual em estoque. Em caso de insuficiencia, a operacao é rejeitada com codigo HTTP `400 Bad Request`. Havendo saldo, a deducao ocorre na mesma transacao.
   - Para movimentacoes de **ENTRADA**: o saldo do produto é incrementado e, caso informado o valor unitario, o preco de custo de referencia é atualizado.
   - Tanto o registro da movimentacao quanto a atualizacao da quantidade do produto sao persistidos na mesma sessao de banco de dados (`commit` unico), prevenindo divergencias entre a tabela de movimentacoes e a de produtos.
 
-### 5. Tratamento Padronizado de Erros e Protecao de Dados Internos
+### 6. Tratamento Padronizado de Erros e Protecao de Dados Internos
 - Respostas de falha utilizam codigos de status HTTP semanticamente corretos:
   - `400 Bad Request`: violacoes de regras de negocio (ex: saldo insuficiente, tentativa de excluir produto com movimentacoes).
   - `401 Unauthorized`: credenciais ausentes, invalidas ou token expirado.
   - `403 Forbidden`: usuario autenticado porem sem o cargo necessario para a operacao.
   - `404 Not Found`: recurso solicitado nao localizado por identificador.
   - `409 Conflict`: duplicidade de campos unicos (ex: SKU/codigo de produto, CNPJ ou e-mail de fornecedor, nome de categoria, nome de usuario).
-  - `422 Unprocessable Entity`: falha de formato, tipo ou referencia inexistente de chaves estrangeiras.
+  - `422 Unprocessable Entity`: falha de formato, tipo, regras de validacao de senha ou referencia inexistente de chaves estrangeiras.
 - Detalhes internos de infraestrutura, logs de conexao ou stack traces nao sao expostos ao cliente final.
 
 ---
@@ -221,6 +231,8 @@ Apos a inicializacao, a documentacao automatica gerada pelo FastAPI estara dispo
 | :--- | :--- | :---: | :---: | :---: | :---: | :---: |
 | **Auth** | `/auth/login` | POST | Sim | Sim | Sim | Sim |
 | **Auth** | `/auth/usuarios` | POST | Nao | Nao | Sim (apenas estoquistas) | Sim (qualquer cargo) |
+| **Auth** | `/auth/usuarios` | GET | Nao | Nao | Sim | Sim |
+| **Auth** | `/auth/usuarios/{usuario_id}` | PUT | Nao | Nao | Sim (exceto conta/cargo admin) | Sim |
 | **Categorias** | `/categorias` | GET | Nao | Sim | Sim | Sim |
 | **Categorias** | `/categorias` | POST | Nao | Nao | Sim | Sim |
 | **Categorias** | `/categorias/{id}` | PATCH | Nao | Nao | Sim | Sim |
@@ -271,12 +283,18 @@ Cadastra um novo usuario do sistema.
 
 - **Acesso:** `admin` (pode criar admin, gerente e estoquista) ou `gerente` (pode criar apenas estoquista).
 - **Header:** `Authorization: Bearer <token>`
+- **Requisitos de Seguranca da Senha:** A senha informada e validada estritamente via schema Pydantic e deve satisfazer todos os seguintes criterios:
+  - Minimo de 8 caracteres;
+  - Ao menos uma letra maiuscula (`[A-Z]`);
+  - Ao menos uma letra minuscula (`[a-z]`);
+  - Ao menos um digito numerico (`\d`);
+  - Ao menos um caractere especial ou simbolo (`[\W_]`).
 - **Corpo da Requisicao (`application/json`):**
 ```json
 {
   "nome": "Carlos Silva",
   "usuario": "carlos.estoque",
-  "senha": "senhaSegura123",
+  "senha": "SenhaForte@123",
   "cargo": "estoquista"
 }
 ```
@@ -291,8 +309,63 @@ Cadastra um novo usuario do sistema.
 }
 ```
 - **Respostas de Erro:**
+  - `401 Unauthorized`: Token ausente ou invalido.
   - `403 Forbidden`: Gerente tentando cadastrar usuario com perfil admin ou gerente.
   - `409 Conflict`: Nome de usuario ja em uso.
+  - `422 Unprocessable Entity`: Senha fraca (falha em atingir os requisitos de tamanho, letras maiusculas/minusculas, numeros ou simbolos) ou campos invalidos.
+
+#### `GET /auth/usuarios`
+Lista todos os usuarios cadastrados no sistema.
+
+- **Acesso:** `admin`, `gerente`.
+- **Header:** `Authorization: Bearer <token>`
+- **Resposta de Sucesso (`200 OK`):**
+```json
+[
+  {
+    "id": "e6f4776c-fb9e-473d-9d41-3b7c845ad35e",
+    "nome": "Carlos Silva",
+    "usuario": "carlos.estoque",
+    "cargo": "estoquista",
+    "created_at": "2026-10-25T10:00:00Z"
+  }
+]
+```
+- **Respostas de Erro:**
+  - `401 Unauthorized`: Token ausente ou invalido.
+  - `403 Forbidden`: Usuario autenticado com cargo sem permissao de consulta (ex: `estoquista`).
+
+#### `PUT /auth/usuarios/{usuario_id}`
+Atualiza os dados cadastrais (nome e cargo) de um usuario existente.
+
+- **Acesso:** `admin`, `gerente`.
+- **Regras Operacionais e RBAC:**
+  - Administradores (`admin`) podem alterar qualquer usuario e definir qualquer cargo.
+  - Gerentes (`gerente`) nao tem permissao para alterar contas de usuarios com cargo `admin` nem promover usuarios para o cargo `admin`.
+- **Header:** `Authorization: Bearer <token>`
+- **Parametros de URL:** `usuario_id` (UUID do usuario).
+- **Corpo da Requisicao (`application/json`):**
+```json
+{
+  "nome": "Carlos S. Oliveira",
+  "cargo": "gerente"
+}
+```
+- **Resposta de Sucesso (`200 OK`):**
+```json
+{
+  "id": "e6f4776c-fb9e-473d-9d41-3b7c845ad35e",
+  "nome": "Carlos S. Oliveira",
+  "usuario": "carlos.estoque",
+  "cargo": "gerente",
+  "created_at": "2026-10-25T10:00:00Z"
+}
+```
+- **Respostas de Erro:**
+  - `401 Unauthorized`: Token ausente ou invalido.
+  - `403 Forbidden`: Gerente tentando alterar um usuario administrador ou promover uma conta ao cargo admin.
+  - `404 Not Found`: Usuario nao encontrado.
+  - `422 Unprocessable Entity`: Formato de UUID ou campos invalidos.
 
 ---
 
