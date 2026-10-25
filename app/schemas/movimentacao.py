@@ -15,6 +15,7 @@ class MovimentacaoCreate(BaseModel):
 
 class MovimentacaoResponse(BaseModel):
     id: UUID
+    usuario_id: UUID
     produto_id: UUID
     tipo: TipoMovimentacao
     quantidade: int

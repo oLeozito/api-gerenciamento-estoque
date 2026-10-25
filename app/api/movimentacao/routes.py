@@ -47,4 +47,4 @@ def criar_movimentacao(
     prod_repo = ProdutoRepository(db)
     service = MovimentacaoService(mov_repo, prod_repo)
     
-    return service.criar_movimentacao(mov_in)
+    return service.criar_movimentacao(mov_in, usuario_id=usuario_atual.id)

@@ -24,7 +24,7 @@ class MovimentacaoService:
     def buscar_por_produto(self, produto_id: UUID) -> list[Movimentacao]:
         return self.repository.get_by_produto_id(produto_id)
 
-    def criar_movimentacao(self, mov_in: MovimentacaoCreate) -> Movimentacao:
+    def criar_movimentacao(self, mov_in: MovimentacaoCreate, usuario_id: UUID) -> Movimentacao:
         produto = self.produto_repo.get_by_id(mov_in.produto_id)
         if not produto:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Produto não encontrado.")
@@ -49,6 +49,7 @@ class MovimentacaoService:
             quantidade=mov_in.quantidade,
             valor_unitario=mov_in.valor_unitario,
             produto_id=mov_in.produto_id
+            usuario_id=usuario_id
         )
         
         self.repository.session.add(nova_movimentacao)
