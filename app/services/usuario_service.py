@@ -9,23 +9,18 @@ class UsuarioService:
         self.repository = repository
 
     def criar_usuario(self, usuario_in: UsuarioCreate, autor_cargo: str) -> Usuario:
-        # Regra de Negócio (Baseada no Payload):
-        # A rota já garantiu que autor_cargo é 'admin' ou 'gerente'.
-        # Se for gerente, impedimos a criação de cargos altos.
         if autor_cargo == "gerente" and usuario_in.cargo in ["admin", "gerente"]:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Gerentes só podem cadastrar estoquistas."
             )
 
-        # Regra de Negócio: Usuário já existe?
         if self.repository.get_by_usuario(usuario_in.usuario):
             raise HTTPException(
                 status_code=status.HTTP_409_CONFLICT,
                 detail="Este nome de usuário já está em uso."
             )
 
-        # Prepara o modelo para salvar
         novo_usuario = Usuario(
             nome=usuario_in.nome,
             usuario=usuario_in.usuario,

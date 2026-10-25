@@ -26,4 +26,3 @@ class Produto(Base,TimestampMixin):
     categoria: Mapped["Categoria"] = relationship(back_populates="produtos")
     fornecedor: Mapped["Fornecedor"] = relationship(back_populates="produtos")
     movimentacoes: Mapped[list["Movimentacao"]] = relationship(back_populates="produto")
-    # peso

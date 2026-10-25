@@ -20,7 +20,7 @@ class MovimentacaoRepository:
         
         query = select(Movimentacao)
 
-        # Se o fornecedor foi passado, fazemos o JOIN dinâmico com Produto
+        # Filtro por fornecedor via relacionamento com Produto
         if fornecedor_id:
             query = query.join(Produto).where(Produto.fornecedor_id == fornecedor_id)
             

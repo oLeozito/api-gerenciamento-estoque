@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 from app.schemas.categoria import CategoriaCreate, CategoriaUpdate, CategoriaResponse
 from app.services.categoria_service import CategoriaService
 from app.repositories.categoria_repository import CategoriaRepository
-from app.api.deps import obter_usuario_logado, exigir_cargos # Importe o exigir_cargos
+from app.api.deps import obter_usuario_logado, exigir_cargos
 from app.core.database import get_db
 from app.models.usuario import Usuario
 
@@ -14,7 +14,6 @@ router = APIRouter(prefix="/categorias", tags=["Categorias"])
 @router.get("", response_model=list[CategoriaResponse], status_code=status.HTTP_200_OK)
 def listar_categorias(
     db: Session = Depends(get_db),
-    # Qualquer logado pode listar
     usuario_atual: Usuario = Depends(obter_usuario_logado) 
 ):
     repository = CategoriaRepository(db)
@@ -25,12 +24,10 @@ def listar_categorias(
 def criar_categoria(
     categoria_in: CategoriaCreate,
     db: Session = Depends(get_db),
-    # Apenas admin e gerente passam daqui
     usuario_atual: Usuario = Depends(exigir_cargos(["admin", "gerente"]))
 ):
     repository = CategoriaRepository(db)
     service = CategoriaService(repository)
-    # Não precisamos mais passar autor_cargo
     return service.criar_categoria(categoria_in=categoria_in)
 
 @router.patch("/{id}", response_model=CategoriaResponse, status_code=status.HTTP_200_OK)
@@ -38,7 +35,6 @@ def atualizar_categoria(
     id: UUID,
     categoria_in: CategoriaUpdate,
     db: Session = Depends(get_db),
-    # Apenas admin e gerente passam daqui
     usuario_atual: Usuario = Depends(exigir_cargos(["admin", "gerente"]))
 ):
     repository = CategoriaRepository(db)
@@ -49,7 +45,6 @@ def atualizar_categoria(
 def deletar_categoria(
     id: UUID,
     db: Session = Depends(get_db),
-    # Apenas admin passa daqui
     usuario_atual: Usuario = Depends(exigir_cargos(["admin"]))
 ):
     repository = CategoriaRepository(db)

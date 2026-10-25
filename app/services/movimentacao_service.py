@@ -25,30 +25,25 @@ class MovimentacaoService:
         return self.repository.get_by_produto_id(produto_id)
 
     def criar_movimentacao(self, mov_in: MovimentacaoCreate) -> Movimentacao:
-        # 1. Busca o produto
         produto = self.produto_repo.get_by_id(mov_in.produto_id)
         if not produto:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Produto não encontrado.")
 
-        # 2. Valida regras matemáticas de estoque
         if mov_in.tipo == TipoMovimentacao.SAIDA:
             if produto.qtd_estoque < mov_in.quantidade:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
                     detail=f"Estoque insuficiente. O produto possui apenas {produto.qtd_estoque} unidades."
                 )
-            # Deduz do estoque
             produto.qtd_estoque -= mov_in.quantidade
             mov_in.valor_unitario = produto.preco_venda
         
         elif mov_in.tipo == TipoMovimentacao.ENTRADA:
-            # Adiciona ao estoque
             produto.qtd_estoque += mov_in.quantidade
 
             if mov_in.valor_unitario is not None:
                 produto.preco_custo = mov_in.valor_unitario
 
-        # 3. Cria a entidade de movimentação
         nova_movimentacao = Movimentacao(
             tipo=mov_in.tipo.value,
             quantidade=mov_in.quantidade,
@@ -56,7 +51,6 @@ class MovimentacaoService:
             produto_id=mov_in.produto_id
         )
         
-        # 4. Salva a movimentação E a alteração do produto na MESMA transação
         self.repository.session.add(nova_movimentacao)
         self.repository.session.commit()
         self.repository.session.refresh(nova_movimentacao)

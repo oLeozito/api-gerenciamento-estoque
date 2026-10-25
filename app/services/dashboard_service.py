@@ -8,13 +8,11 @@ class DashboardService:
         self.mov_repo = mov_repo
 
     def gerar_dashboard(self) -> dict:
-        # 1. Busca os dados brutos
         top_vendas = self.mov_repo.get_produto_mais_vendido_30_dias()
         dados_diarios = self.mov_repo.get_agrupamento_diario_30_dias()
         estoque_critico = self.prod_repo.get_estoque_critico_count()
         estoque_atual = self.prod_repo.get_all_simplificado()
 
-        # 2. Processa o gráfico diário e calcula os totais dos 30 dias na mesma passada (otimização)
         diario_dict = defaultdict(lambda: {"entradas_qtd": 0, "entradas_rs": 0.0, "saidas_qtd": 0, "saidas_rs": 0.0})
         
         totais = {
@@ -37,10 +35,8 @@ class DashboardService:
                 totais["saidas"]["quantidade"] += qtd
                 totais["saidas"]["valor_reais"] += valor
 
-        # 3. Monta a lista final do gráfico
         grafico = [{"data": data, **valores} for data, valores in sorted(diario_dict.items())]
 
-        # 4. Formata o Top Produto (pode ser None se a loja for nova)
         produto_top = None
         if top_vendas:
             produto_top = {
@@ -49,13 +45,11 @@ class DashboardService:
                 "quantidade_vendida": int(top_vendas.total_vendido)
             }
 
-        # 5. Formata a lista de estoque
         estoque_formatado = [
             {"id": p.id, "nome": p.nome, "qtd_estoque": p.qtd_estoque} 
             for p in estoque_atual
         ]
 
-        # 6. Retorna no formato cravado do Schema
         return {
             "produto_mais_vendido": produto_top,
             "totais_30_dias": totais,

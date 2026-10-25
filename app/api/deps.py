@@ -9,14 +9,12 @@ from app.repositories.usuario_repository import UsuarioRepository
 from app.models.usuario import Usuario
 from app.core.database import get_db
 
-# Removemos o OAuth2PasswordBearer e ativamos o esquema Bearer genérico
 security_scheme = HTTPBearer()
 
 def obter_usuario_logado(
     credenciais: HTTPAuthorizationCredentials = Depends(security_scheme),
     db: Session = Depends(get_db)
 ) -> Usuario:
-    # O token é agora extraído diretamente das credenciais
     token = credenciais.credentials
     
     try:

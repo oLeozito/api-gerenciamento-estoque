@@ -37,6 +37,6 @@ def criar_usuario(
     
     novo_usuario = service.criar_usuario(
         usuario_in=usuario_in,
-        autor_cargo=usuario_atual.cargo # Passamos para o service diferenciar Admin de Gerente
+        autor_cargo=usuario_atual.cargo
     )
     return novo_usuario

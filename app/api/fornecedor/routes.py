@@ -14,7 +14,6 @@ router = APIRouter(prefix="/fornecedores", tags=["Fornecedores"])
 @router.get("", response_model=list[FornecedorListResponse], status_code=status.HTTP_200_OK)
 def listar_fornecedores(
     db: Session = Depends(get_db),
-    # Qualquer utilizador logado (inclusive estoquista) pode listar os dados resumidos
     usuario_atual: Usuario = Depends(obter_usuario_logado)
 ):
     repository = FornecedorRepository(db)
@@ -25,7 +24,6 @@ def listar_fornecedores(
 def buscar_fornecedor(
     id: UUID,
     db: Session = Depends(get_db),
-    # Qualquer utilizador logado (inclusive estoquista) pode buscar os dados completos de 1 fornecedor específico
     usuario_atual: Usuario = Depends(obter_usuario_logado)
 ):
     repository = FornecedorRepository(db)
@@ -36,7 +34,6 @@ def buscar_fornecedor(
 def criar_fornecedor(
     fornecedor_in: FornecedorCreate,
     db: Session = Depends(get_db),
-    # Bloqueio: Apenas admin e gerente
     usuario_atual: Usuario = Depends(exigir_cargos(["admin", "gerente"]))
 ):
     repository = FornecedorRepository(db)
@@ -48,7 +45,6 @@ def atualizar_fornecedor(
     id: UUID,
     fornecedor_in: FornecedorUpdate,
     db: Session = Depends(get_db),
-    # Bloqueio: Apenas admin e gerente
     usuario_atual: Usuario = Depends(exigir_cargos(["admin", "gerente"]))
 ):
     repository = FornecedorRepository(db)
@@ -59,7 +55,6 @@ def atualizar_fornecedor(
 def deletar_fornecedor(
     id: UUID,
     db: Session = Depends(get_db),
-    # Bloqueio Absoluto: Apenas admin
     usuario_atual: Usuario = Depends(exigir_cargos(["admin"]))
 ):
     repository = FornecedorRepository(db)

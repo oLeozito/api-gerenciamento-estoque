@@ -41,10 +41,8 @@ def listar_movimentacoes_por_produto(
 def criar_movimentacao(
     mov_in: MovimentacaoCreate,
     db: Session = Depends(get_db),
-    # Estoquista tem passe livre aqui
     usuario_atual: Usuario = Depends(obter_usuario_logado) 
 ):
-    # Instanciamos os dois repositórios dividindo a MESMA sessão de banco
     mov_repo = MovimentacaoRepository(db)
     prod_repo = ProdutoRepository(db)
     service = MovimentacaoService(mov_repo, prod_repo)
