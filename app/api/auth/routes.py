@@ -1,3 +1,4 @@
+from typing import List
 from fastapi import APIRouter, Depends, status
 from sqlalchemy.orm import Session
 
@@ -40,3 +41,13 @@ def criar_usuario(
         autor_cargo=usuario_atual.cargo
     )
     return novo_usuario
+
+@router.get("/usuarios", response_model=List[UsuarioResponse])
+def listar_usuarios(
+    usuario_atual: Usuario = Depends(exigir_cargos(["admin", "gerente"])),
+    db: Session = Depends(get_db)
+):
+    repository = UsuarioRepository(db)
+    service = UsuarioService(repository)
+    
+    return service.listar_usuarios()

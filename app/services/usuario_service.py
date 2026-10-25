@@ -29,3 +29,6 @@ class UsuarioService:
         )
         
         return self.repository.create(novo_usuario)
+
+    def listar_usuarios(self):
+        return self.repository.listar_todos()

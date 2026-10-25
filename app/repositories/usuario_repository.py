@@ -21,3 +21,7 @@ class UsuarioRepository:
         self.session.commit()
         self.session.refresh(usuario_model)
         return usuario_model
+
+    def listar_todos(self) -> list[Usuario]:
+        query = select(Usuario)
+        return list(self.session.execute(query).scalars().all())
