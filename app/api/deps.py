@@ -1,5 +1,5 @@
 from fastapi import Depends, HTTPException, status
-from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 import jwt
 from sqlalchemy.orm import Session
 
@@ -9,13 +9,14 @@ from app.repositories.usuario_repository import UsuarioRepository
 from app.models.usuario import Usuario
 from app.core.database import get_db
 
-# Diz ao FastAPI (e ao Swagger) onde fica a rota de login
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
+security_scheme = HTTPBearer()
 
 def obter_usuario_logado(
-    token: str = Depends(oauth2_scheme),
+    credenciais: HTTPAuthorizationCredentials = Depends(security_scheme),
     db: Session = Depends(get_db)
 ) -> Usuario:
+    token = credenciais.credentials
+    
     try:
         payload = jwt.decode(
             token, settings.secret_key, algorithms=[settings.algorithm]
@@ -40,7 +41,17 @@ def obter_usuario_logado(
     if not usuario:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Usuário não encontrado",
+            detail="Utilizador não encontrado",
         )
         
     return usuario
+
+def exigir_cargos(cargos_permitidos: list[str]):
+    def validador(usuario: Usuario = Depends(obter_usuario_logado)) -> Usuario:
+        if usuario.cargo not in cargos_permitidos:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Acesso negado. Você não tem permissão para realizar esta ação."
+            )
+        return usuario
+    return validador

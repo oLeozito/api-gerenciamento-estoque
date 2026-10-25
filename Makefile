@@ -1,2 +1,2 @@
 create-admin:
-	docker compose exec api python app/scripts/create_admin.py
+	docker compose exec api python -m app.scripts.create_admin

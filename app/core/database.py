@@ -3,7 +3,6 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import settings
 
-# O Pydantic já garantiu que a database_url existe e está correta
 engine = create_engine(settings.database_url)
 
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)

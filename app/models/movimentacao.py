@@ -17,10 +17,13 @@ class Movimentacao(Base, TimestampMixin):
     )
 
     id: Mapped[UUID] = mapped_column(primary_key=True, default=uuid4, server_default=text("gen_random_uuid()"))
+    usuario_id: Mapped[UUID] = mapped_column(ForeignKey("usuarios.id"), nullable=False)
     tipo: Mapped[str] = mapped_column(String(20), nullable=False)
     quantidade: Mapped[int] = mapped_column(nullable=False)
+    valor_unitario: Mapped[float] = mapped_column(nullable=True)
     data: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     # RESTRICT preserva o historico: um produto com movimentacoes nao pode ser apagado fisicamente.
     produto_id: Mapped[UUID] = mapped_column(ForeignKey("produtos.id", ondelete="RESTRICT"), nullable=False, index=True)
 
     produto: Mapped["Produto"] = relationship(back_populates="movimentacoes")
+    usuario: Mapped["Usuario"] = relationship(back_populates="movimentacoes")
